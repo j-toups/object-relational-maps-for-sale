@@ -5,39 +5,44 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 
 // get all products
 router.get('/', (req, res) => {
-  // find all products
   Product.findAll({
-    include: [{
-      model: Category,
-      attributes: ['category_name']
-    }, 
-    {
-      model: Tag,
-      attributes: ['tag_name']
-    }]
-  }).then((proData) => {
-    res.json(proData);
-  }).catch((err) => res.json(err));
+    include: [
+      Category,
+      {
+        model: Tag,
+        through: ProductTag,
+      },
+    ],
+  })
+    .then((products) => res.json(products))
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
+    });
 });
 
 // get one product
 router.get('/:id', (req, res) => {
-  // find a single product by its `id`
-  Product.findByPk(req.params.id, {include: [
-    {
-      model: Category,
-      attributes: ['category_name']
+  Product.findOne({
+    where: {
+      id: req.params.id,
     },
-    {
-      model: Tag,
-      attributes: ['tag_name']
-    }
-  ]}).then((catData) => {
-    res.json(catData);
-  }).catch((err) => res.json(err));
+    include: [
+      Category,
+      {
+        model: Tag,
+        through: ProductTag,
+      },
+    ],
+  })
+    .then((products) => res.json(products))
+    .catch((err) => {
+      console.log(err);
+      res.status(400).json(err);
+    });
 });
 
-// create new product
+// creat new product
 router.post('/', (req, res) => {
   Product.create({
     product_name: req.body.product_name,
@@ -48,7 +53,7 @@ router.post('/', (req, res) => {
   })
     .then((product) => {
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
-      if (req.body.tagIds.length) {
+      if (req.body.tagIds && req.body.tagIds.length) {
         const productTagIdArr = req.body.tagIds.map((tag_id) => {
           return {
             product_id: product.id,
@@ -104,20 +109,25 @@ router.put('/:id', (req, res) => {
     })
     .then((updatedProductTags) => res.json(updatedProductTags))
     .catch((err) => {
-      // console.log(err);
+      console.log(err);
       res.status(400).json(err);
     });
 });
 
 router.delete('/:id', (req, res) => {
-  // delete one product by its `id` value
   Product.destroy({
     where: {
-      id: req.params.id
-    }
-  }).then((deletedProduct) => {
-    res.json(deletedProduct);
-  }).catch((err) => res.json(err));
+      id: req.params.id,
+    },
+  })
+    .then((products) => {
+      console.log(products);
+      res.json(products);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(400).json(err);
+    });
 });
 
 module.exports = router;

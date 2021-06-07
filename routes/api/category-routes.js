@@ -23,18 +23,20 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  Category.create(req.body)
-    .then((category) => res.status(200).json(category))
+  Category.create({
+    category_name: req.body.category_name
+  }).then((category) => res.json(category))
     .catch((err) => res.status(400).json(err));
 });
 
 router.put('/:id', (req, res) => {
-  Category.update(req.body, {
+  Category.update({
+    category_name: req.body.category_name,
+  }, {
     where: {
       id: req.params.id,
-    },
-  })
-    .then((category) => res.status(200).json(category))
+    }
+  }).then((category) => res.json(category))
     .catch((err) => res.status(400).json(err));
 });
 
